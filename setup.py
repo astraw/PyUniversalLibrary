@@ -6,6 +6,6 @@ setup(name='PyUniversalLibrary',
       version='20061020',
       author='Andrew Straw',
       author_email = 'strawman@astraw.com',
-      url = 'http://www.its.caltech.edu/~astraw/pyul.html',
+      url = 'https://github.com/astraw/PyUniversalLibrary',
       packages=['UniversalLibrary'],
       )

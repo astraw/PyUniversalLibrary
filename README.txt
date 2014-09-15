@@ -10,7 +10,7 @@ This document is both the `webpage for PyUniversalLibrary`_ and the
 README.txt file (distributed with the source code of
 PyUniversalLibrary).  It is in reStructuredText_ format.
 
-.. _webpage for PyUniversalLibrary: http://www.its.caltech.edu/~astraw/pyul.html
+.. _webpage for PyUniversalLibrary: https://github.com/astraw/PyUniversalLibrary
 .. _reStructuredText: http://docutils.sourceforge.net/rst.html
 
 .. contents::
@@ -93,7 +93,7 @@ extensive documentation and example code.
 .. _Python: http://www.python.org
 .. _numpy: http://www.scipy.org/NumPy/
 .. _ctypes: http://sourceforge.net/projects/ctypes/
-.. _download directory: http://www.its.caltech.edu/~astraw/PyUniversalLibrary
+.. _download directory: http://code.astraw.com/PyUniversalLibrary-downloads/
 .. _Pyrex: http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
 .. _Universal Library: http://www.measurementcomputing.com/cbicatalog/cbiproduct.asp?dept%5Fid=261&pf%5Fid=1084&mscssid=RDNUK9VN7L3L8PL34QF282AX3F987098
 
@@ -172,4 +172,4 @@ Owner: `California Institute of Technology`_
 Author: `Andrew Straw`_
 
 .. _California Institute of Technology: http://www.caltech.edu
-.. _Andrew Straw: http://www.its.caltech.edu/~astraw
+.. _Andrew Straw: http://strawlab.org/
