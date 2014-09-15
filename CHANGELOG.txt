@@ -1,3 +1,12 @@
+release 20061020
+----------------
+
+ 2006-10-20: Rewrote module using ctypes and numpy so it's pure Python now.
+ 2006-10-20: Updated analog out examples to work on USB PMD-1208FS device.
+
+release 20050624
+----------------
+
  2005-06-24: All Analog I/O, Digital I/O, and Temperature functions
              are now wrapped.
 

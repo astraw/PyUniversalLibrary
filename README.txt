@@ -26,7 +26,27 @@ have made in wrapping this library useful. I welcome your changes and
 additions.  I will include them with the next release with appropriate
 credit.
 
-**Current version:** 20050624
+Release 20061020
+````````````````
+
+**Current version**
+
+Rewrote as a pure-Python implementation, which uses ctypes and numpy
+(new requirements). There is no longer a requirement on Numeric, and
+this should work with any reasonably backwards-compatible future
+versions of Python, ctypes, and numpy. The analog output examples were
+changed to work on USB PMD-1208FS devices.
+
+Release 20050624 
+````````````````
+
+Lots of Universal Library is now covered, including all analog I/O,
+digital I/O, and temperature input functions.
+
+Release 20050623
+````````````````
+
+First public release.
 
 Also of interest
 ----------------
@@ -36,8 +56,11 @@ Various Python wrappers for data acquisition are available.  Here are a few I kn
  * National Instruments NI-DAQ: http://sourceforge.net/projects/uncpythontools/
  * Data Translation: `Martin Spacek`_ has indicated (personal commication) he has drivers
  * Comedi apparently comes with Python wrappers: http://www.comedi.org/
+ * `Dr. Warren Jasper's`_ `Measurement Computing USB drivers for Linux`_ (Andrew Straw has written Python wrappers for these - contact him for further information)
 
 .. _Martin Spacek: http://www.ece.ualberta.ca/~mspacek/
+.. _Dr. Warren Jasper's: http://www.tx.ncsu.edu/faculty_center/directory/detail.cfm?id=57
+.. _Measurement Computing USB drivers for Linux: ftp://lx10.tx.ncsu.edu/pub/Linux/drivers
 
 Installation and Download
 -------------------------
@@ -47,23 +70,16 @@ This contains the various libraries needed to access your hardware.
 
 You must have Python_ installed.
 
-You must have Numeric_ installed.
+You must have ctypes_ installed (this is included with Python 2.5),
+but can be downloaded for older versions of Python.
+
+You must have numpy_ installed.
 
 **Download PyUniversalLibrary:** Grab a binary installer or the source
 code from the `download directory`_.
 
-*For the binary installers, make sure you match the Python and Numeric
-version numbers.* (The Universal Library DLLs can supposedly adjust
-their interface to the version PyUniversalLibrary was built with.)
-
 *To get the examples, download the source code.* You can still install
-the binaries without compiling anything.
-
-To compile the source code, you will need Pyrex_ and the Universal
-Library C API.  Run::
-
- python autogen.py # re-generates the source files using MCC's headers
- python setup.py install # compiles and installs the source
+the binaries.
 
 Optional
 ````````
@@ -75,10 +91,11 @@ extensive documentation and example code.
 .. _Measurement Computing: http://measurementcomputing.com/
 .. _InstaCal: ftp://ftp.computerboards.com/DAQ_Software_CD/swinstall.exe
 .. _Python: http://www.python.org
-.. _Numeric: http://numeric.scipy.org/
+.. _numpy: http://www.scipy.org/NumPy/
+.. _ctypes: http://sourceforge.net/projects/ctypes/
 .. _download directory: http://www.its.caltech.edu/~astraw/PyUniversalLibrary
 .. _Pyrex: http://www.cosc.canterbury.ac.nz/~greg/python/Pyrex/
-.. _Universal Library: http://www.measurementcomputing.com/cbicatalog/cbiproduct.asp?dept%5Fid=347&pf%5Fid=1084&mscssid=T6FXUB9D01HH8JDAJRKLJ7WRHLKA7FDF
+.. _Universal Library: http://www.measurementcomputing.com/cbicatalog/cbiproduct.asp?dept%5Fid=261&pf%5Fid=1084&mscssid=RDNUK9VN7L3L8PL34QF282AX3F987098
 
 Examples
 --------
@@ -103,7 +120,8 @@ exceptions.
       print DataValue, EngUnits
 
 
-Further examples are included, including a simple wxPython_/matplotlib_ based oscilloscope.
+Further examples are included, including a simple
+wxPython_/matplotlib_ based oscilloscope.
 
 .. _wxPython: http://wxpython.org/
 .. _matplotlib: http://matplotlib.sourceforge.net/

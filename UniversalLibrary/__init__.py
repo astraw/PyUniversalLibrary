@@ -1,4 +1,6 @@
-# Copyright (c) 2005-2006, California Institute of Technology
+# emacs, this is -*-Python-*- mode
+
+# Copyright (c) 2006, California Institute of Technology
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -31,29 +33,4 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Author: Andrew Straw
-
-import UniversalLibrary as UL
-import numpy
-
-BoardNum = 0
-Gain = UL.BIP5VOLTS
-
-LowChan = 0
-HighChan = 0
-
-Count = 10000
-Rate = 3125
-
-Options = UL.CONVERTDATA + UL.BACKGROUND + UL.SINGLEIO
-ADData = numpy.zeros((10000,), dtype=numpy.int16)
-
-# Note that one could do similar things with a multi-threaded program
-
-Rate = UL.cbAInScan(BoardNum, LowChan, HighChan, Count,
-                    Rate, Gain, ADData, Options)
-
-Status = UL.RUNNING
-CurCount = 0
-CurIndex = 0
-while Status==UL.RUNNING:
-    Status, CurCount, CurIndex = UL.cbGetStatus(BoardNum, Status, CurCount, CurIndex, UL.AIFUNCTION)
+from UniversalLibrary import *

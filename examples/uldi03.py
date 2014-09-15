@@ -1,4 +1,4 @@
-# Copyright (c) 2005, California Institute of Technology
+# Copyright (c) 2005-2006, California Institute of Technology
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 # Author: Andrew Straw
 import UniversalLibrary as UL
-import Numeric
+import numpy
 
 BoardNum = 0
 
@@ -46,7 +46,7 @@ UL.cbDConfigPort(BoardNum, PortNum, Direction)
 Options = UL.WORDXFER
 Count = 15
 Rate = 15
-DataBuffer = Numeric.zeros((Count,),Numeric.UInt8)
+DataBuffer = numpy.zeros((Count,),dtype=numpy.uint8)
 Rate = UL.cbDInScan(BoardNum, PortNum, Count, Rate, DataBuffer, Options)
     
     

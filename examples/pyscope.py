@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Copyright (C) Jeremy O'Donoghue, 2003
-Copyright (C) California Institute of Technology, 2005
+Copyright (C) California Institute of Technology, 2005-2006
  
 License: This work is licensed under the PSF. A copy is available at
 http://www.python.org/psf/license.html
@@ -16,12 +16,11 @@ from matplotlib.backends.backend_wx import FigureCanvasWx,\
 
 from matplotlib.figure import Figure
 from matplotlib.axes import Subplot
-import matplotlib.numerix as numpy
 from wxPython.wx import *
 import threading
 
 import UniversalLibrary as UL
-import Numeric as nx
+import numpy
 
 EVT_TRIG_ID = wxNewId()
 def EVT_TRIG(win, func):
@@ -35,7 +34,7 @@ class TrigEvent(wxPyEvent):
 
 def daq_thread_func(wxapp):
     TotalCount = 3000
-    ADData = nx.zeros((TotalCount+512,), nx.Int16)
+    ADData = numpy.zeros((TotalCount+512,), dtype=numpy.int16)
     
     BoardNum = 0
     UDStat = 0
@@ -46,13 +45,17 @@ def daq_thread_func(wxapp):
 
     Rate = 20000
 
-    PretrigCount = 200
+    PretrigCount = 500
     
     Options = UL.CONVERTDATA
     while 1:
-        PretrigCount, TotalCount, Rate = UL.cbAPretrig (BoardNum, LowChan, HighChan,
-                                                        PretrigCount, TotalCount,
-                                                        Rate, Gain, ADData, Options)
+        PretrigCount, TotalCount, Rate = UL.cbAPretrig (BoardNum,
+                                                        LowChan,
+                                                        HighChan,
+                                                        PretrigCount,
+                                                        TotalCount,
+                                                        Rate, Gain,
+                                                        ADData, Options)
         datacopy = ADData[:]
         wxapp.AddPendingEvent(TrigEvent(TotalCount,datacopy))
 
@@ -107,7 +110,7 @@ class App(wxApp):
             self.frame.lines[1].set_data( self.frame.ind, ch1 )
         else:
             a = self.frame.fig.add_subplot(111)
-            self.frame.ind = nx.arange( len(ch0) )*0.1
+            self.frame.ind = numpy.arange( len(ch0) )*0.1
             self.frame.lines = a.plot(self.frame.ind, ch0, 'b-',
                                       self.frame.ind, ch1, 'g-' )
         self.frame.canvas.draw()

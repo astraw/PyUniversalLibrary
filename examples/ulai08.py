@@ -1,4 +1,4 @@
-# Copyright (c) 2005, California Institute of Technology
+# Copyright (c) 2005-2006, California Institute of Technology
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 # Author: Andrew Straw
 
 import UniversalLibrary as UL
-import Numeric as nx
+import numpy
 
 BoardNum = 0
 Gain = UL.BIP5VOLTS
@@ -46,7 +46,7 @@ Rate = 2000
 PretrigCount = 10
 TotalCount = 700
 
-ADData = nx.zeros((TotalCount+512,), nx.Int16)
+ADData = numpy.zeros((TotalCount+512,), dtype=numpy.int16)
 
 Options = UL.CONVERTDATA
 PretrigCount, TotalCount, Rate = UL.cbAPretrig (BoardNum, LowChan, HighChan,

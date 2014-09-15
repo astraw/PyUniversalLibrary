@@ -1,4 +1,4 @@
-# Copyright (c) 2005, California Institute of Technology
+# Copyright (c) 2005-2006, California Institute of Technology
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 # Author: Andrew Straw
 
 import UniversalLibrary as UL
-import Numeric as nx
+import numpy
 import pylab
 
 BoardNum = 0
@@ -50,7 +50,7 @@ UL.cbSetTrigger(BoardNum, UL.TRIG_HIGH, 0, 0)
 
 print 'Waiting for trigger'
 Options = UL.CONVERTDATA + UL.EXTTRIGGER
-ADData = nx.zeros((Count,), nx.Int16)
+ADData = numpy.zeros((Count,), dtype=numpy.int16)
 Rate = UL.cbAInScan(BoardNum, LowChan, HighChan, Count,
                     Rate, Gain, ADData, Options)    
 

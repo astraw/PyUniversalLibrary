@@ -35,7 +35,7 @@ import UniversalLibrary as UL
 
 BoardNum = 0
 Chan = 0
-Gain = UL.BIP5VOLTS
-EngUnits = 3.3 # Volts
+Gain = UL.UNI4VOLTS # works on USB 1208FS
+EngUnits = 2.5 # Volts
 DataValue = UL.cbFromEngUnits(BoardNum, Gain, EngUnits, 0)
 UL.cbAOut(BoardNum, Chan, Gain, DataValue)

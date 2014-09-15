@@ -1,6 +1,6 @@
 # emacs, this is -*-Python-*- mode
 
-# Copyright (c) 2005, California Institute of Technology
+# Copyright (c) 2006, California Institute of Technology
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -48,53 +48,66 @@ cbDeclareRevision()
 
 """
 
-import Numeric
-cimport c_numeric
+import ctypes
+from ctypes import byref
+import numpy
+import constants # PyUL contants
+from constants import * # PyUL contants
 
-__version__ = '20050624'
+cbw = ctypes.windll.cbw32 # open CBW32.DLL
 
-cdef extern from "Windows.h":
-    cdef void * malloc( int size )
-    cdef void free( void * ptr )
+all_constants = [attr for attr in constants.__dict__
+                 if not attr.startswith('__')]
 
-cdef extern from "Python.h":
-    void Py_BEGIN_ALLOW_THREADS()
-    void Py_END_ALLOW_THREADS()
+__all__ = ['UniversalLibraryBaseError',
+           'UniversalLibraryError',
+           'UniversalLibraryBaseError',
+           'cbAConvertData',
+           'cbAConvertPretrigData',
+           'cbACalibrateData',
+           'cbAIn',
+           'cbAInScan',
+           'cbALoadQueue',
+           'cbAOut',
+           'cbAOutScan',
+           'cbAPretrig',
+           'cbATrig',
 
-#####################################
-#
-# Python functions and classes
-#
-#####################################
+           'cbGetConfig',
+           'cbGetSignal',
+           'cbSelectSignal',
+           'cbSetConfig',
+           'cbSetTrigger',
+           
+           'cbDBitIn',
+           'cbDBitOut',
+           'cbDConfigBit',
+           'cbDConfigPort',
+           'cbDIn',
+           'cbDInScan',
+           'cbDOut',
+           'cbDOutScan',
 
-def _get_error_message(int UDStat):
-    """query Universal Library for the description of an error number"""
-    cdef char* err_msg
-    cdef int err2
+           'cbGetRevision',
 
-    err_msg = <char*>malloc(ERRSTRLEN)
-    if err_msg == NULL:
-        raise MemoryError('Could not allocate memory to get error message')
+           'cbTIn',
+           'cbTInScan',
+           
+           'cbFromEngUnits',
+           'cbToEngUnits',
+           'cbGetStatus',
+           
+           ] + all_constants
 
-    err2 = cbw.cbGetErrMsg(UDStat,err_msg)
-    if err2:
-        raise SystemError('Error %d while getting error message for error %d'%(err2,UDStat))
-    origerrstr = str(err_msg)
-    free(<void*>err_msg)
-    return origerrstr
+__version__ = '20061020'
 
-def __declare_revlevel__():
-    cdef float RevLevel
-    RevLevel = CURRENTREVNUM
-    CHK(cbw.cbDeclareRevision(&RevLevel))
-    
 class UniversalLibraryBaseError( Exception ):
     """base class for all UniversalLibrary exceptions"""
     pass
 
 class UniversalLibraryError( UniversalLibraryBaseError ):
     """error occurred within the C layer of Universal Library"""
-    def __init__(self, int UDStat):
+    def __init__(self, UDStat):
         errstr = 'Error %d: %s'%(UDStat,_get_error_message(UDStat))
         self.errno = UDStat
         Exception.__init__(self, errstr)
@@ -103,18 +116,36 @@ class UniversalLibraryPythonError( UniversalLibraryBaseError ):
     """error occurred within the Python layer of Universal Library"""
     pass
 
-cdef CHK(int UDStat):
+def _get_error_message(UDStat):
+    err_msg = ctypes.create_string_buffer(constants.ERRSTRLEN)
+    err2 = cbw.cbGetErrMsg(UDStat,err_msg)
+    if err2:
+        raise SystemError(
+            'Error %d while getting error message for error %d'%(err2,UDStat))
+    origerrstr = err_msg.value
+    return origerrstr
+
+def CHK(UDStat):
     """raise appropriate exception if error occurred"""
     if UDStat != NOERRORS:
         raise UniversalLibraryError(UDStat)
-
+    
 def CHK_ARRAY( arr, N, nxtype ):
+    if not hasattr(arr,'shape'):
+        raise UniversalLibraryPythonError("input argument is not an array")
     if len(arr.shape) != 1:
         raise UniversalLibraryPythonError("array is not rank 1")
-    if arr.typecode() != nxtype:
+    if arr.dtype != nxtype:
         raise UniversalLibraryPythonError("array is not correct data type '%s'"%str(nxtype))
     if len(arr) < N:
         raise UniversalLibraryPythonError("array is not large enough")
+    if not arr.flags['CONTIGUOUS']:
+        raise UniversalLibraryPythonError("array is not contiguous")
+    return arr
+    
+def __declare_revlevel__():
+    RevLevel = ctypes.c_float(constants.CURRENTREVNUM)
+    CHK(cbw.cbDeclareRevision(ctypes.byref(RevLevel)))
 
 ###############################
 #
@@ -122,8 +153,8 @@ def CHK_ARRAY( arr, N, nxtype ):
 #
 ###############################
 
-def cbAConvertData (int BoardNum, long NumPoints, c_numeric.ArrayType ADData, 
-                    c_numeric.ArrayType ChanTags):
+def cbAConvertData (BoardNum, NumPoints, ADData, 
+                    ChanTags):
     """Convert data collected by cbAInScan()
 
     Inputs
@@ -134,14 +165,14 @@ def cbAConvertData (int BoardNum, long NumPoints, c_numeric.ArrayType ADData,
     ChanTags --  modified to contain the channel tag array
 
     """
-    CHK_ARRAY( ADData, NumPoints, Numeric.UInt16 )
-    CHK_ARRAY( ChanTags, NumPoints, Numeric.UInt16 )
-    CHK( cbw.cbAConvertData(BoardNum, NumPoints, <cbw.USHORT*>ADData.data, 
-                            <cbw.USHORT*>ChanTags.data))
-
-def cbAConvertPretrigData(int BoardNum, long PreTrigCount, 
-                          long TotalCount, c_numeric.ArrayType ADData, 
-                          c_numeric.ArrayType ChanTags):
+    CHK_ARRAY( ADData, NumPoints, numpy.uint16 )
+    CHK_ARRAY( ChanTags, NumPoints, numpy.uint16 )
+    CHK( cbw.cbAConvertData(BoardNum, NumPoints, ADData.ctypes.data, 
+                            ChanTags.ctypes.data))
+    
+def cbAConvertPretrigData(BoardNum, PreTrigCount, 
+                          TotalCount, ADData, 
+                          ChanTags):
     """Convert data collected by cbAPretrig().
 
     Inputs
@@ -153,18 +184,18 @@ def cbAConvertPretrigData(int BoardNum, long PreTrigCount,
     ChanTags --  modified to contain the channel tag array
 
     """
-    CHK_ARRAY( ADData, NumPoints, Numeric.UInt16 )
-    CHK_ARRAY( ChanTags, NumPoints, Numeric.UInt16 )
+    CHK_ARRAY( ADData, NumPoints, numpy.uint16 )
+    CHK_ARRAY( ChanTags, NumPoints, numpy.uint16 )
     CHK( cbw.cbAConvertPretrigData(BoardNum, PreTrigCount, 
-                                   TotalCount, <cbw.USHORT*>ADData.data, 
-                                   <cbw.USHORT*>ChanTags.data))
+                                   TotalCount, ADData.ctypes.data, 
+                                   ChanTags.ctypes.data))
 
-def cbACalibrateData (int BoardNum, long NumPoints, int Gain, 
-                      c_numeric.ArrayType ADData):
+def cbACalibrateData(BoardNum, NumPoints, Gain, 
+                     ADData):
     CHK( cbw.cbACalibrateData ( BoardNum, NumPoints, Gain, 
-                                <cbw.USHORT*>ADData.data))
+                                ADData.ctypes.data))
 
-def cbAIn (short BoardNum, short Chan, short Gain, unsigned short DataValue=0):
+def cbAIn( BoardNum,  Chan, Gain, DataValue=0):
     """Read A/D input channel
 
     Inputs
@@ -180,13 +211,13 @@ def cbAIn (short BoardNum, short Chan, short Gain, unsigned short DataValue=0):
     DataValue
     
     """
-    
-    CHK(cbw.cbAIn(BoardNum, Chan, Gain, &DataValue))
-    return DataValue
+    cDataValue = ctypes.c_ushort(DataValue)
+    CHK(cbw.cbAIn(BoardNum, Chan, Gain, ctypes.byref(cDataValue)))
+    return cDataValue.value
 
-def cbAInScan(int BoardNum, int LowChan, int HighChan, long Count,
-              long Rate, int Gain, c_numeric.ArrayType ADData,
-              int Options):
+def cbAInScan(BoardNum, LowChan, HighChan, Count,
+              Rate, Gain, ADData,
+              Options):
     """Scan range of A/D channels and store samples in an array
 
     Inputs
@@ -207,40 +238,35 @@ def cbAInScan(int BoardNum, int LowChan, int HighChan, long Count,
     Rate
     
     """
-    cdef int err
-    CHK_ARRAY( ADData, Count, Numeric.Int16 )
-    Py_BEGIN_ALLOW_THREADS
-    err = cbw.cbAInScan(BoardNum, LowChan, HighChan, Count,
-                       &Rate, Gain, ADData.data, Options)
-    Py_END_ALLOW_THREADS
-    CHK(err)
-    return Rate
+    Rate = ctypes.c_long(Rate)
+    CHK_ARRAY( ADData, Count, numpy.int16 )
+    CHK(cbw.cbAInScan(BoardNum, LowChan, HighChan, Count,
+                      byref(Rate), Gain, ADData.ctypes.data, Options))
+    return Rate.value
 
-def cbALoadQueue (int BoardNum, c_numeric.ArrayType ChanArray, c_numeric.ArrayType GainArray, 
-                  int NumChans):
-    CHK_ARRAY( ChanArray, NumChans, Numeric.Int16 )
-    CHK_ARRAY( GainArray, NumChans, Numeric.Int16 )
-    CHK(cbw.cbALoadQueue(BoardNum, <short*>ChanArray.data, <short*>GainArray.data, NumChans))
+def cbALoadQueue ( BoardNum, ChanArray, GainArray, 
+                   NumChans):
+    CHK_ARRAY( ChanArray, NumChans, numpy.int16 )
+    CHK_ARRAY( GainArray, NumChans, numpy.int16 )
+    CHK(cbw.cbALoadQueue(BoardNum, ChanArray.ctypes.data,
+                         GainArray.ctypes.data, NumChans))
     
-def cbAOut(int BoardNum, int Chan, int Gain, cbw.USHORT DataValue):
+def cbAOut(BoardNum, Chan, Gain, DataValue):
     CHK( cbw.cbAOut(BoardNum, Chan, Gain, DataValue))
 
-def cbAOutScan (int BoardNum, int LowChan, int HighChan, 
-                long Count, long Rate, int Gain, 
-                c_numeric.ArrayType MemHandle, int Options):
-    cdef int err
-    CHK_ARRAY( MemHandle, Count, Numeric.Int16 )
-    Py_BEGIN_ALLOW_THREADS
-    err = cbw.cbAOutScan( BoardNum, LowChan, HighChan, 
-                          Count, &Rate, Gain, 
-                          MemHandle.data, Options)
-    Py_END_ALLOW_THREADS
-    CHK(err)
-    return Rate
+def cbAOutScan(BoardNum, LowChan, HighChan, 
+               Count, Rate, Gain, 
+               MemHandle, Options):
+    CHK_ARRAY( MemHandle, Count, numpy.int16 )
+    Rate = ctypes.c_long(Rate)
+    CHK(cbw.cbAOutScan( BoardNum, LowChan, HighChan, 
+                        Count, byref(Rate), Gain, 
+                        MemHandle.ctypes.data, Options))
+    return Rate.value
     
-def cbAPretrig (int BoardNum, int LowChan, int HighChan,
-                long PreTrigCount, long TotalCount, long Rate, 
-                int Gain, c_numeric.ArrayType ADData, int Options):
+def cbAPretrig(BoardNum, LowChan, HighChan,
+               PreTrigCount, TotalCount, Rate, 
+               Gain, ADData, Options):
     """Acquire analog data upon being triggered.
 
     Inputs
@@ -265,22 +291,22 @@ def cbAPretrig (int BoardNum, int LowChan, int HighChan,
 
     """
     
-    cdef int err
-    CHK_ARRAY( ADData, TotalCount+512, Numeric.Int16 )
-    Py_BEGIN_ALLOW_THREADS
-    err = cbw.cbAPretrig( BoardNum, LowChan, HighChan,
-                          &PreTrigCount, &TotalCount, &Rate, 
-                          Gain, ADData.data, Options)
-    Py_END_ALLOW_THREADS
-    CHK(err)
-    return PreTrigCount, TotalCount, Rate
+    CHK_ARRAY( ADData, TotalCount+512, numpy.int16 )
+    PreTrigCount = ctypes.c_long(PreTrigCount)
+    TotalCount = ctypes.c_long(TotalCount)
+    Rate = ctypes.c_long(Rate)
+    CHK(cbw.cbAPretrig( BoardNum, LowChan, HighChan,
+                          byref(PreTrigCount), byref(TotalCount),
+                          byref(Rate), 
+                          Gain, ADData.ctypes.data, Options))
+    return PreTrigCount.value, TotalCount.value, Rate.value
 
-def cbATrig (int BoardNum, int Chan, int TrigType, 
-             cbw.USHORT TrigValue, int Gain, cbw.USHORT DataValue):
+def cbATrig(BoardNum, Chan, TrigType, 
+            TrigValue, Gain, DataValue):
+    DataValue = ctypes.c_ushort(DataValue)
     CHK(cbw.cbATrig( BoardNum, Chan, TrigType, 
-                     TrigValue, Gain, &DataValue))
-    return DataValue
-    
+                     TrigValue, Gain, byref(DataValue)))
+    return DataValue.value
 
 ###################################
 #
@@ -288,8 +314,8 @@ def cbATrig (int BoardNum, int Chan, int TrigType,
 #
 ###################################
 
-def cbGetConfig(int InfoType, int BoardNum, int DevNum, 
-                int ConfigItem, int ConfigVal):
+def cbGetConfig(InfoType, BoardNum, DevNum, 
+                ConfigItem, ConfigVal):
     """Return a configuration option for a card.
 
     Inputs
@@ -304,11 +330,12 @@ def cbGetConfig(int InfoType, int BoardNum, int DevNum,
     -------
     ConfigVal
     """
+    ConfigVal = ctypes.c_int(ConfigVal)
     CHK( cbw.cbGetConfig(InfoType, BoardNum, DevNum, 
-                          ConfigItem, &ConfigVal))
-    return ConfigVal
+                          ConfigItem, byref(ConfigVal)))
+    return ConfigVal.value
 
-def cbGetSignal(int BoardNum, int Direction, int Signal, int Index, int Connection, int Polarity):
+def cbGetSignal(BoardNum, Direction, Signal, Index, Connection, Polarity):
     """Retrieve the information for the specified timing and control signal
 
     Inputs
@@ -328,11 +355,15 @@ def cbGetSignal(int BoardNum, int Direction, int Signal, int Index, int Connecti
     Polarity
     
     """
-    CHK(cbw.cbGetSignal(BoardNum, Direction, Signal, Index,&Connection,&Polarity))
-    return Connection, Polarity
+    Connection = ctypes.c_int(Connection)
+    Polarity = ctypes.c_int(Polarity)
+    CHK(cbw.cbGetSignal(BoardNum, Direction, Signal, Index,
+                        byref(Connection),byref(Polarity)))
+    return Connection.value, Polarity.value
 
-def cbSelectSignal(int BoardNum, int Direction, int Signal, int Connection, int Polarity):
-    """Configure timing and control signal to use specific connections as a source or destination.
+def cbSelectSignal(BoardNum, Direction, Signal, Connection, Polarity):
+    """Configure timing and control signal to use specific connections
+    as a source or destination.
 
     Inputs
     ------
@@ -346,8 +377,8 @@ def cbSelectSignal(int BoardNum, int Direction, int Signal, int Connection, int 
     """
     CHK(cbw.cbSelectSignal(BoardNum, Direction, Signal, Connection, Polarity))
 
-def cbSetConfig (int InfoType, int BoardNum, int DevNum, 
-                 int ConfigItem, int ConfigVal):
+def cbSetConfig(InfoType, BoardNum, DevNum, 
+                ConfigItem, ConfigVal):
     """Set configuration option for a card.
 
     Inputs
@@ -360,8 +391,8 @@ def cbSetConfig (int InfoType, int BoardNum, int DevNum,
     """
     CHK(cbw.cbSetConfig(InfoType,BoardNum,DevNum, ConfigItem,ConfigVal))
     
-def cbSetTrigger(int BoardNum, int TrigType, cbw.USHORT LowThreshold, 
-                 cbw.USHORT HighThreshold):
+def cbSetTrigger(BoardNum, TrigType, LowThreshold, 
+                 HighThreshold):
     """Selects trigger source and sets up parameters
 
     Inputs
@@ -375,15 +406,13 @@ def cbSetTrigger(int BoardNum, int TrigType, cbw.USHORT LowThreshold,
     """
     CHK( cbw.cbSetTrigger(BoardNum,TrigType,LowThreshold,HighThreshold))
 
-
 ################################
 #
 # Digital I/O functions for UL
 #
 ################################
 
-def cbDBitIn(int BoardNum, int PortType, int BitNum, 
-             cbw.USHORT BitValue):
+def cbDBitIn(BoardNum, PortType, BitNum, BitValue):
     """Read state of a single digital input bit.
 
     Inputs
@@ -400,10 +429,11 @@ def cbDBitIn(int BoardNum, int PortType, int BitNum,
     BitValue
 
     """
-    CHK(cbw.cbDBitIn(BoardNum, PortType, BitNum, &BitValue))
-    return BitValue
+    BitValue = ctypes.c_ushort(BitValue)
+    CHK(cbw.cbDBitIn(BoardNum, PortType, BitNum, byref(BitValue)))
+    return BitValue.value
 
-def cbDBitOut (int BoardNum, int PortType, int BitNum, cbw.USHORT BitValue):
+def cbDBitOut(BoardNum, PortType, BitNum, BitValue):
     """Set state of a single digital output bit.
 
     Inputs
@@ -415,10 +445,9 @@ def cbDBitOut (int BoardNum, int PortType, int BitNum, cbw.USHORT BitValue):
     BitValue
     
     """
-    
     CHK( cbw.cbDBitOut( BoardNum, PortType, BitNum, BitValue))
 
-def cbDConfigBit(int BoardNum, int PortNum, int BitNum, int Direction):
+def cbDConfigBit(BoardNum, PortNum, BitNum, Direction):
     """Configure a digital bit as Input or Output.
 
     Inputs
@@ -431,7 +460,7 @@ def cbDConfigBit(int BoardNum, int PortNum, int BitNum, int Direction):
     """
     CHK(cbw.cbDConfigBit(BoardNum, PortNum, BitNum, Direction))
 
-def cbDConfigPort(int BoardNum, int PortNum, int Direction):
+def cbDConfigPort(BoardNum, PortNum, Direction):
     """Configure digital port as input or output.
 
     Inputs
@@ -443,7 +472,7 @@ def cbDConfigPort(int BoardNum, int PortNum, int Direction):
     """
     CHK( cbw.cbDConfigPort( BoardNum, PortNum, Direction))
 
-def cbDIn (int BoardNum, int PortNum, cbw.USHORT DataValue):
+def cbDIn(BoardNum, PortNum, DataValue):
     """Read a digital port
 
     Inputs
@@ -457,11 +486,12 @@ def cbDIn (int BoardNum, int PortNum, cbw.USHORT DataValue):
     DataValue
 
     """
-    CHK(cbw.cbDIn(BoardNum, PortNum, &DataValue))
-    return DataValue
+    DataValue = ctypes.c_ushort(DataValue)
+    CHK(cbw.cbDIn(BoardNum, PortNum, byref(DataValue)))
+    return DataValue.value
 
-def cbDInScan( int BoardNum, int PortNum, long Count, long Rate,
-               c_numeric.ArrayType MemHandle, int Options):
+def cbDInScan( BoardNum, PortNum, Count, Rate,
+               MemHandle, Options):
     """Multiple reads of a digital port
 
     Inputs
@@ -480,16 +510,13 @@ def cbDInScan( int BoardNum, int PortNum, long Count, long Rate,
     Rate
 
     """
-    cdef int err
-    CHK_ARRAY( MemHandle, Count, Numeric.UInt8 )
-    Py_BEGIN_ALLOW_THREADS
-    err = cbw.cbDInScan( BoardNum, PortNum,Count,  &Rate,
-                         MemHandle.data, Options)
-    Py_END_ALLOW_THREADS
-    CHK(err)
+    CHK_ARRAY( MemHandle, Count, numpy.uint8 )
+    Rate = ctypes.c_long(Rate)
+    CHK(cbw.cbDInScan( BoardNum, PortNum, Count, byref(Rate),
+                       MemHandle.ctypes.data, Options))
     return Rate
 
-def cbDOut(int BoardNum, int PortNum, cbw.USHORT DataValue):
+def cbDOut(BoardNum, PortNum, DataValue):
     """Write to digital output
 
     Inputs
@@ -501,8 +528,8 @@ def cbDOut(int BoardNum, int PortNum, cbw.USHORT DataValue):
     """
     CHK(cbw.cbDOut(BoardNum, PortNum, DataValue))
 
-def cbDOutScan (int BoardNum, int PortNum, long Count, long Rate,
-                c_numeric.ArrayType MemHandle, int Options):
+def cbDOutScan(BoardNum, PortNum, Count, Rate,
+               MemHandle, Options):
     """Perform multiple writes to digital output
 
     Inputs
@@ -521,14 +548,11 @@ def cbDOutScan (int BoardNum, int PortNum, long Count, long Rate,
     Rate
 
     """
-    cdef int err
-    CHK_ARRAY( MemHandle, Count, Numeric.UInt8 )
-    Py_BEGIN_ALLOW_THREADS
-    err = cbw.cbDOutScan( BoardNum, PortNum, Count, &Rate,
-                          MemHandle.data, Options)
-    Py_END_ALLOW_THREADS
-    CHK(err)
-    return Rate
+    CHK_ARRAY( MemHandle, Count, numpy.uint8 )
+    Rate = ctypes.c_long(Rate)
+    CHK(cbw.cbDOutScan( BoardNum, PortNum, Count, byref(Rate),
+                        MemHandle.ctypes.data, Options))
+    return Rate.value
 
 #####################################
 #
@@ -537,9 +561,10 @@ def cbDOutScan (int BoardNum, int PortNum, long Count, long Rate,
 #####################################
 
 def cbGetRevision():
-    cdef float RevNum, VxDRevNum
-    cbw.cbGetRevision (&RevNum, &VxDRevNum)
-    return RevNum, VxDRevNum
+    RevNum = ctypes.c_float()
+    VxDRevNum = ctypes.c_float()
+    cbw.cbGetRevision (byref(RevNum), byref(VxDRevNum))
+    return RevNum.value, VxDRevNum.value
 
 ###############################
 #
@@ -547,8 +572,7 @@ def cbGetRevision():
 #
 ###############################
 
-def cbTIn( int BoardNum, int Chan, int Scale, float TempValue,
-           int Options):
+def cbTIn(BoardNum, Chan, Scale, TempValue, Options):
     """Read temperature.
 
     Inputs
@@ -565,14 +589,13 @@ def cbTIn( int BoardNum, int Chan, int Scale, float TempValue,
     
     TempValue
 
-
     """
-    
-    CHK( cbw.cbTIn( BoardNum, Chan, Scale, &TempValue, Options))
-    return TempValue
+    TempValue = ctypes.c_float(TempValue)
+    CHK( cbw.cbTIn( BoardNum, Chan, Scale, byref(TempValue), Options))
+    return TempValue.value
 
-def cbTInScan (int BoardNum, int LowChan, int HighChan, int Scale,
-               c_numeric.ArrayType DataBuffer, int Options):
+def cbTInScan(BoardNum, LowChan, HighChan, Scale,
+              DataBuffer, Options):
     """Read a range of temperature channels
 
     Inputs
@@ -586,9 +609,9 @@ def cbTInScan (int BoardNum, int LowChan, int HighChan, int Scale,
     Options
 
     """
-    CHK_ARRAY( DataBuffer, HighChan - LowChan + 1, Numeric.Float32 )
+    CHK_ARRAY( DataBuffer, HighChan - LowChan + 1, numpy.float32 )
     CHK(cbw.cbTInScan(BoardNum, LowChan, HighChan, Scale,
-                      <float*>DataBuffer.data, Options))
+                      DataBuffer.ctypes.data, Options))
     
 ###############################
 #
@@ -596,8 +619,7 @@ def cbTInScan (int BoardNum, int LowChan, int HighChan, int Scale,
 #
 ###############################
 
-def cbFromEngUnits (int BoardNum, int Range, float EngUnits, 
-                    cbw.USHORT DataVal):
+def cbFromEngUnits(BoardNum, Range, EngUnits, DataVal):
     """Convert a voltage or current to an A/D count value
     
     Inputs
@@ -614,10 +636,12 @@ def cbFromEngUnits (int BoardNum, int Range, float EngUnits,
     DataVal
     
     """
-    CHK(cbw.cbFromEngUnits(BoardNum,Range, EngUnits, &DataVal))
-    return DataVal
+    DataVal = ctypes.c_ushort(DataVal)
+    EngUnits = ctypes.c_float(EngUnits)
+    CHK(cbw.cbFromEngUnits(BoardNum, Range, EngUnits, byref(DataVal)))
+    return DataVal.value
 
-def cbToEngUnits(short BoardNum, short Range, unsigned short DataVal, float EngUnits=0.0):
+def cbToEngUnits(BoardNum, Range, DataVal, EngUnits=0.0):
     """Converts an A/D count value to voltage value
 
     Inputs
@@ -634,15 +658,19 @@ def cbToEngUnits(short BoardNum, short Range, unsigned short DataVal, float EngU
     EngUnits
 
     """
+    EngUnits = ctypes.c_float(EngUnits)
+    CHK(cbw.cbToEngUnits(BoardNum, Range, DataVal, byref(EngUnits)))
+    return EngUnits.value
     
-    CHK(cbw.cbToEngUnits(BoardNum, Range, DataVal, &EngUnits))
-    return EngUnits
-    
-def cbGetStatus(int BoardNum, short Status, long CurCount, # as above
-                long CurIndex,int FunctionType):
+def cbGetStatus(BoardNum, Status, CurCount,
+                CurIndex, FunctionType):
     """Returns status about potentially currently running background operation"""
-    CHK( cbw.cbGetStatus(BoardNum, &Status, &CurCount, &CurIndex, FunctionType))
-    return Status, CurCount, CurIndex
+    Status = ctypes.c_short(Status)
+    CurCount = ctypes.c_long(CurCount)
+    CurIndex = ctypes.c_long(CurIndex)
+    CHK( cbw.cbGetStatus(BoardNum, byref(Status), byref(CurCount),
+                         byref(CurIndex), FunctionType))
+    return Status.value, CurCount.value, CurIndex.value
 
 ###############################
 #

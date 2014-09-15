@@ -1,4 +1,4 @@
-# Copyright (c) 2005, California Institute of Technology
+# Copyright (c) 2005-2006, California Institute of Technology
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,12 @@
 
 # Author: Andrew Straw
 import UniversalLibrary as UL
-import Numeric
+import numpy
 
 BoardNum = 0
 NumChan = 2
-Gain = UL.BIP5VOLTS
-ADData = Numeric.array([0,0],Numeric.Int16)
+Gain = UL.UNI4VOLTS  # works on USB 1208FS
+ADData = numpy.array([0,0],dtype=numpy.int16)
 LowChan = 0
 HighChan = 1
 

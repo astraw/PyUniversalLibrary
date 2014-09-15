@@ -1,4 +1,4 @@
-# Copyright (c) 2005, California Institute of Technology
+# Copyright (c) 2005-2006, California Institute of Technology
 # All rights reserved.
 
 # Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 # Author: Andrew Straw
 
 import UniversalLibrary as UL
-import Numeric as nx
+import numpy
 
 BoardNum = 0
 UDStat = 0
@@ -46,7 +46,7 @@ Count = 20
 Rate = 3125
 
 Options = UL.CONVERTDATA + UL.BACKGROUND + UL.SINGLEIO
-ADData = nx.zeros((Count,), nx.Int16)
+ADData = numpy.zeros((Count,), dtype=numpy.int16)
 print 'a'
 Rate = UL.cbAInScan(BoardNum, LowChan, HighChan, Count,
                     Rate, Gain, ADData, Options)
