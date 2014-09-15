@@ -1,3 +1,5 @@
+# emacs, this is -*-Python-*- mode
+
 # Copyright (c) 2005, California Institute of Technology
 # All rights reserved.
 
@@ -36,13 +38,16 @@ cdef extern from "cbw.h":
 
     ctypedef unsigned short USHORT
     ctypedef void* HGLOBAL
-    int cbACalibrateData (int BoardNum, long NumPoints, int Gain, 
-                          USHORT *ADData)
     int cbGetRevision (float *RevNum, float *VxDRevNum)
     int cbLoadConfig(char *CfgFileName)
     int cbSaveConfig(char *CfgFileName)
     int cbAConvertData (int BoardNum, long NumPoints, USHORT *ADData, 
                         USHORT *ChanTags)
+    int cbAConvertPretrigData (int BoardNum, long PreTrigCount, 
+                               long TotalCount, USHORT *ADData, 
+                               USHORT *ChanTags)
+    int cbACalibrateData (int BoardNum, long NumPoints, int Gain, 
+                          USHORT *ADData)
     int cbDeclareRevision(float *RevNum)
     int cbErrHandling (int ErrReporting, int ErrHandling)
 
@@ -64,3 +69,38 @@ cdef extern from "cbw.h":
     int cbSetTrigger (int BoardNum, int TrigType, USHORT LowThreshold, 
 		                       USHORT HighThreshold)
     int cbGetErrMsg(int ErrCode, char *ErrMsg)                      
+
+    int cbTIn(int BoardNum, int Chan, int Scale, float *TempValue,
+              int Options)
+    int cbTInScan (int BoardNum, int LowChan, int HighChan, int Scale,
+                            float *DataBuffer, int Options)
+
+    int cbDBitIn (int BoardNum, int PortType, int BitNum, 
+                           USHORT *BitValue)
+    int cbDBitOut (int BoardNum, int PortType, int BitNum, USHORT BitValue)
+    int cbDConfigBit (int BoardNum, int PortNum, int BitNum, int Direction)
+    int cbDConfigPort (int BoardNum, int PortNum, int Direction)
+    int cbDIn (int BoardNum, int PortNum, USHORT *DataValue)
+    int cbDInScan (int BoardNum, int PortNum, long Count, long *Rate,
+                            HGLOBAL MemHandle, int Options)
+    int cbDOut(int BoardNum, int PortNum, USHORT DataValue)
+    int cbDOutScan (int BoardNum, int PortNum, long Count, long *Rate,
+                             HGLOBAL MemHandle, int Options)
+
+    int cbALoadQueue (int BoardNum, short *ChanArray, short *GainArray, 
+                      int NumChans)
+    int cbAOut (int BoardNum, int Chan, int Gain, USHORT DataValue)
+    int cbAOutScan (int BoardNum, int LowChan, int HighChan, 
+                    long Count, long *Rate, int Gain, 
+                    HGLOBAL MemHandle, int Options)
+    int cbATrig (int BoardNum, int Chan, int TrigType, 
+                 USHORT TrigValue, int Gain, USHORT *DataValue)
+    int cbGetConfig (int InfoType, int BoardNum, int DevNum, 
+                     int ConfigItem, int *ConfigVal)
+    int cbSetConfig (int InfoType, int BoardNum, int DevNum, 
+                     int ConfigItem, int ConfigVal)
+    int cbGetSignal(int BoardNum, int Direction, int Signal, int Index, int* Connection, int* Polarity)
+    int cbSelectSignal(int BoardNum,  int Direction, int Signal, int Connection, int Polarity)
+
+    int cbFromEngUnits (int BoardNum, int Range, float EngUnits, 
+                        USHORT *DataVal)

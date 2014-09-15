@@ -36,7 +36,6 @@ import UniversalLibrary as UL
 import Numeric as nx
 
 BoardNum = 0
-UDStat = 0
 Gain = UL.BIP5VOLTS
 
 LowChan = 0
@@ -47,6 +46,9 @@ Rate = 3125
 
 Options = UL.CONVERTDATA + UL.BACKGROUND + UL.SINGLEIO
 ADData = nx.zeros((10000,), nx.Int16)
+
+# Note that one could do similar things with a multi-threaded program
+
 Rate = UL.cbAInScan(BoardNum, LowChan, HighChan, Count,
                     Rate, Gain, ADData, Options)
 

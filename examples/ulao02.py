@@ -31,21 +31,20 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Author: Andrew Straw
-
 import UniversalLibrary as UL
-import Numeric as nx
+import Numeric
 
 BoardNum = 0
+NumChan = 2
 Gain = UL.BIP5VOLTS
-
+ADData = Numeric.array([0,0],Numeric.Int16)
 LowChan = 0
 HighChan = 1
 
-Count = 20
-Rate = 3125
 
-Options = UL.CONVERTDATA
-ADData = nx.zeros((Count,), nx.Int16)
-Rate = UL.cbAInScan(BoardNum, LowChan, HighChan, Count,
-                    Rate, Gain, ADData, Options)
+Count = HighChan - LowChan + 1
+Rate = UL.NOTUSED
+Options = 0
 
+Rate = UL.cbAOutScan (BoardNum, LowChan, HighChan, Count, Rate, Gain, ADData,
+                      Options)

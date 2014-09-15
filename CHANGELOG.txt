@@ -1,0 +1,7 @@
+ 2005-06-24: All Analog I/O, Digital I/O, and Temperature functions
+             are now wrapped.
+
+release 20050623
+----------------
+
+ * Initial release

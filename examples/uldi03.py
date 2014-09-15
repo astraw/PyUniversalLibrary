@@ -31,21 +31,22 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Author: Andrew Straw
-
 import UniversalLibrary as UL
-import Numeric as nx
+import Numeric
 
 BoardNum = 0
-Gain = UL.BIP5VOLTS
 
-LowChan = 0
-HighChan = 1
+PortNum = UL.FIRSTPORTB
+Direction = UL.DIGITALIN
+UL.cbDConfigPort(BoardNum, PortNum, Direction)
 
-Count = 20
-Rate = 3125
+PortNum = UL.FIRSTPORTA
+UL.cbDConfigPort(BoardNum, PortNum, Direction)
 
-Options = UL.CONVERTDATA
-ADData = nx.zeros((Count,), nx.Int16)
-Rate = UL.cbAInScan(BoardNum, LowChan, HighChan, Count,
-                    Rate, Gain, ADData, Options)
-
+Options = UL.WORDXFER
+Count = 15
+Rate = 15
+DataBuffer = Numeric.zeros((Count,),Numeric.UInt8)
+Rate = UL.cbDInScan(BoardNum, PortNum, Count, Rate, DataBuffer, Options)
+    
+    

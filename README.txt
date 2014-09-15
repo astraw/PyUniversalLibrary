@@ -8,23 +8,25 @@ systems.
 
 This document is both the `webpage for PyUniversalLibrary`_ and the
 README.txt file (distributed with the source code of
-PyUniversalLibrary).  It is in ReStructuredText format.
+PyUniversalLibrary).  It is in reStructuredText_ format.
 
 .. _webpage for PyUniversalLibrary: http://www.its.caltech.edu/~astraw/pyul.html
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
 
 .. contents::
 
 Work in Progress
 ----------------
 
-Currently PyUniversalLibrary is incomplete.  I have only wrapped the
-functions which I have personally needed, primarily buffered analog
-input.  If you need more functionality, you will hopefully find that
-the start I have made in wrapping this library useful. I welcome your
-changes and additions.  I will include them with the next release with
-appropriate credit.
+Currently PyUniversalLibrary is incomplete.  I have so far wrapped
+analog I/O, digital I/O, and temperature functions.  Some of these I
+have not personally needed, so please be aware of potential bugs.  If
+you need more functionality, you will hopefully find that the start I
+have made in wrapping this library useful. I welcome your changes and
+additions.  I will include them with the next release with appropriate
+credit.
 
-**Current version:** 20050623
+**Current version:** 20050624
 
 Also of interest
 ----------------
@@ -51,13 +53,14 @@ You must have Numeric_ installed.
 code from the `download directory`_.
 
 *For the binary installers, make sure you match the Python and Numeric
-version numbers.* (The Universal Library version number should be
-matched, too, but I can't tell how to ask InstaCal for this.)
+version numbers.* (The Universal Library DLLs can supposedly adjust
+their interface to the version PyUniversalLibrary was built with.)
 
 *To get the examples, download the source code.* You can still install
 the binaries without compiling anything.
 
-To compile the source code, you will need Pyrex_.  Run::
+To compile the source code, you will need Pyrex_ and the Universal
+Library C API.  Run::
 
  python autogen.py # re-generates the source files using MCC's headers
  python setup.py install # compiles and installs the source
@@ -66,8 +69,8 @@ Optional
 ````````
 
 If you intend make significant use of PyUniversalLibrary, I suggest
-you buy `Universal Library`_. It costs $50 and includes extensive
-documentation and example code.
+you buy `Universal Library`_ C API. It costs $50 and includes
+extensive documentation and example code.
 
 .. _Measurement Computing: http://measurementcomputing.com/
 .. _InstaCal: ftp://ftp.computerboards.com/DAQ_Software_CD/swinstall.exe

@@ -21,7 +21,7 @@ ext_modules.append(Extension(name='UniversalLibrary',
                              ))
 setup(name='PyUniversalLibrary',
       license='BSD',
-      version='20050623',
+      version='20050624',
       author='Andrew Straw',
       ext_modules= ext_modules,
       cmdclass = {'build_ext': build_ext}, # use Pyrex's build_ext command

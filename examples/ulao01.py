@@ -31,21 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Author: Andrew Straw
-
 import UniversalLibrary as UL
-import Numeric as nx
 
 BoardNum = 0
+Chan = 0
 Gain = UL.BIP5VOLTS
-
-LowChan = 0
-HighChan = 1
-
-Count = 20
-Rate = 3125
-
-Options = UL.CONVERTDATA
-ADData = nx.zeros((Count,), nx.Int16)
-Rate = UL.cbAInScan(BoardNum, LowChan, HighChan, Count,
-                    Rate, Gain, ADData, Options)
-
+EngUnits = 3.3 # Volts
+DataValue = UL.cbFromEngUnits(BoardNum, Gain, EngUnits, 0)
+UL.cbAOut(BoardNum, Chan, Gain, DataValue)

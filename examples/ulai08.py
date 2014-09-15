@@ -36,7 +36,6 @@ import UniversalLibrary as UL
 import Numeric as nx
 
 BoardNum = 0
-UDStat = 0
 Gain = UL.BIP5VOLTS
 
 LowChan = 0

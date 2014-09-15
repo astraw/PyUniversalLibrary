@@ -31,21 +31,47 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Author: Andrew Straw
-
 import UniversalLibrary as UL
-import Numeric as nx
 
 BoardNum = 0
-Gain = UL.BIP5VOLTS
+devNum = 0
+FirstPort = 0
 
-LowChan = 0
-HighChan = 1
+FirstPort = UL.cbGetConfig(UL.DIGITALINFO, BoardNum, devNum, UL.DIDEVTYPE, FirstPort)
 
-Count = 20
-Rate = 3125
+PortNum = UL.FIRSTPORTA
+Direction = UL.DIGITALOUT
+UL.cbDConfigPort (BoardNum, PortNum, Direction)
 
-Options = UL.CONVERTDATA
-ADData = nx.zeros((Count,), nx.Int16)
-Rate = UL.cbAInScan(BoardNum, LowChan, HighChan, Count,
-                    Rate, Gain, ADData, Options)
+DataValue = 0
+UL.cbDOut(BoardNum, PortNum, DataValue)
 
+if FirstPort == UL.AUXPORT:
+    devNum = 1
+    UL.cbGetConfig(UL.DIGITALINFO, BoardNum, devNum, UL.DIDEVTYPE, FirstPort)
+
+if FirstPort==UL.FIRSTPORTA:
+    FirstBit = 0
+elif FirstPort==UL.FIRSTPORTB:
+    FirstBit = 8
+elif FirstPort==UL.FIRSTPORTCL:
+    FirstBit = 16
+elif FirstPort==UL.FIRSTPORTCH:
+    FirstBit = 20
+else:
+    FirstBit = 0
+    
+Direction = UL.DIGITALOUT
+UL.cbDConfigPort(BoardNum, FirstPort+1, Direction)
+DataValue = 5
+BitLevel = 1
+for BitNum in range(8):
+    if BitNum == DataValue and BitLevel==1:
+        BitValue = 1
+    elif BitNum == DataValue and BitLevel==0:
+        BitValue = 0
+    else:
+        BitValue = 0
+    
+    PortType=UL.FIRSTPORTA
+    UL.cbDBitOut(BoardNum, PortType, FirstBit+BitNum, BitValue)
